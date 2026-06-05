@@ -1,0 +1,120 @@
+:root {
+    --wppt-bg: #f0f2f5;
+    --wppt-card: #ffffff;
+    --wppt-accent: #2271b1;
+    --wppt-success: #00a32a;
+    --wppt-warning: #dba617;
+    --wppt-critical: #d63638;
+    --wppt-text: #1d2327;
+    --wppt-text-muted: #646970;
+    --wppt-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    --wppt-radius: 12px;
+}
+
+.wppt-dashboard {
+    margin-inline-start: -20px; /* Offset WP sidebar padding */
+    padding: 24px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+    color: var(--wppt-text);
+}
+
+.wppt-header {
+    margin-block-end: 32px;
+}
+
+.wppt-header h1 {
+    font-size: 28px;
+    font-weight: 700;
+    margin: 0;
+}
+
+/* Overall Score Section */
+.wppt-score-card {
+    background: var(--wppt-card);
+    padding: 40px;
+    border-radius: var(--wppt-radius);
+    box-shadow: var(--wppt-shadow);
+    display: flex;
+    align-items: center;
+    gap: 40px;
+    margin-block-end: 24px;
+}
+
+.wppt-score-circle {
+    position: relative;
+    width: 120px;
+    height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.wppt-score-value {
+    font-size: 32px;
+    font-weight: 800;
+}
+
+/* Metrics Grid */
+.wppt-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 20px;
+    margin-block-end: 24px;
+}
+
+.wppt-card {
+    background: var(--wppt-card);
+    padding: 24px;
+    border-radius: var(--wppt-radius);
+    box-shadow: var(--wppt-shadow);
+    transition: transform 0.2s ease;
+}
+
+.wppt-card:hover {
+    transform: translateY(-4px);
+}
+
+.wppt-card h3 {
+    margin: 0 0 12px 0;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--wppt-text-muted);
+}
+
+.wppt-metric {
+    font-size: 24px;
+    font-weight: 700;
+}
+
+/* Layout Management */
+.wppt-main-content {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 24px;
+}
+
+/* Module Status Indicators */
+.status {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--wppt-success);
+    margin-inline-end: 8px;
+}
+
+.pulse {
+    box-shadow: 0 0 0 rgba(0, 163, 42, 0.4);
+    animation: wppt-pulse 2s infinite;
+}
+
+@keyframes wppt-pulse {
+    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 163, 42, 0.7); }
+    70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(0, 163, 42, 0); }
+    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 163, 42, 0); }
+}
+
+@media (max-width: 1024px) {
+    .wppt-main-content { grid-template-columns: 1fr; }
+}

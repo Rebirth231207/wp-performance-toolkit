@@ -1,0 +1,58 @@
+# =========================
+# OS Generated Files
+# =========================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# =========================
+# IDEs and Editors
+# =========================
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.project
+.settings/
+
+# =========================
+# Log Files
+# =========================
+*.log
+debug.log
+
+# =========================
+# Composer (PHP Dependencies)
+# =========================
+vendor/
+composer.phar
+
+# =========================
+# Node / Build Tools (For future CSS/JS minification tools)
+# =========================
+node_modules/
+npm-debug.log
+yarn-error.log
+.parcel-cache/
+
+# =========================
+# Build and Release
+# =========================
+*.zip
+*.tar
+*.tar.gz
+/build/
+/dist/
+/releases/
+
+# =========================
+# Environment Variables
+# =========================
+.env
+.env.local
+.env.*
