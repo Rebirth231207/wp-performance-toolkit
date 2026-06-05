@@ -5,7 +5,6 @@
  * Description:       A developer-first, zero-overhead performance optimization and diagnostics suite.
  * Version:           1.0.0
  * Author:            Mohammad Hadi Salimi
- * Author URI:        https://t.me/Salimi_Developer
  * Text Domain:       wp-performance-toolkit
  * Domain Path:       /languages
  * Requires PHP:      7.4
@@ -24,19 +23,32 @@ if ( ! defined( 'ABSPATH' ) ) {
 define( 'WPPT_VERSION', '1.0.0' );
 define( 'WPPT_PATH', plugin_dir_path( __FILE__ ) );
 define( 'WPPT_URL', plugin_dir_url( __FILE__ ) );
+define( 'WPPT_BASENAME', plugin_basename( __FILE__ ) );
 
 /**
- * Load and Initialize the PSR-4 Autoloader.
+ * Load the Autoloader.
  */
 require_once WPPT_PATH . 'includes/class-autoloader.php';
-new WPPT\Includes\Autoloader();
 
 /**
- * Run the Toolkit.
- * We hook into plugins_loaded to ensure dependencies are available.
+ * Initialize the Plugin components.
  */
-add_action( 'plugins_loaded', function() {
-	// Initialize the Module Manager.
-	// This will handle the discovery and loading of all performance modules.
+function run_wp_performance_toolkit() {
+	// 1. Initialize Autoloader.
+	new WPPT\Includes\Autoloader();
+
+	// 2. Initialize Internationalization.
+	$i18n = new WPPT\Includes\I18n();
+	add_action( 'plugins_loaded', [ $i18n, 'load_textdomain' ] );
+
+	// 3. Initialize Module Manager (Discovers all 30 performance modules).
 	new WPPT\Includes\Module_Manager();
-});
+
+	// 4. Initialize Admin Dashboard (Crucial Fix: Calling run()).
+	if ( is_admin() ) {
+		$admin = new WPPT\Admin\Admin_Settings();
+		$admin->run(); // This activates the admin_menu hooks.
+	}
+}
+
+run_wp_performance_toolkit();

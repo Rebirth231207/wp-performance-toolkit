@@ -8,14 +8,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Admin Settings & Dashboard Manager
  * 
- * Handles the orchestration of admin hooks, asset loading, 
- * and telemetry-driven dashboard rendering.
+ * Handles the registration of the admin menu, asset enqueuing, 
+ * and the rendering of the telemetry-driven dashboard.
  */
 class Admin_Settings {
 
 	/**
-	 * Orchestrates the registration of hooks.
-	 * This ensures the menu and assets are loaded only when WordPress is ready.
+	 * Orchestrates the registration of WordPress hooks.
 	 */
 	public function run(): void {
 		add_action( 'admin_menu', [ $this, 'register_menu' ] );
@@ -47,27 +46,21 @@ class Admin_Settings {
 			return;
 		}
 
-		// Enqueue the pure CSS and Vanilla JS.
 		wp_enqueue_style( 'wppt-admin-css', WPPT_URL . 'admin/assets/css/admin.css', [], WPPT_VERSION );
 		wp_enqueue_script( 'wppt-admin-js', WPPT_URL . 'admin/assets/js/admin.js', [], WPPT_VERSION, true );
 
-		// Gather telemetry and pass it to the JS dashboard under the window.wpptStats object.
 		wp_localize_script( 'wppt-admin-js', 'wpptStats', $this->get_dashboard_telemetry() );
 	}
 
 	/**
 	 * Collects real-time performance and system data.
-	 * 
-	 * @return array The telemetry data package.
 	 */
 	private function get_dashboard_telemetry(): array {
 		global $wpdb;
 
-		// 1. Fetch the latest snapshot from the Performance Analyzer.
 		$snapshot = get_transient( 'wppt_latest_performance_snapshot' );
 		$history  = get_option( 'wppt_performance_history', [] );
 
-		// 2. Calculate DB Overhead (Data Free).
 		$db_status   = $wpdb->get_results( "SHOW TABLE STATUS", ARRAY_A );
 		$db_overhead = 0;
 		if ( $db_status ) {
@@ -77,7 +70,6 @@ class Admin_Settings {
 		}
 		$db_overhead_mb = round( $db_overhead / 1024 / 1024, 2 );
 
-		// 3. Count Active Modules (Directory Scan).
 		$module_count = 0;
 		$modules_path = WPPT_PATH . 'modules/';
 		if ( is_dir( $modules_path ) ) {
@@ -89,7 +81,6 @@ class Admin_Settings {
 			}
 		}
 
-		// 4. Calculate Dynamic Performance Score (0-100).
 		$ttfb      = $snapshot['ttfb'] ?? 0;
 		$load_time = $snapshot['load_time'] ?? 0;
 		
@@ -103,13 +94,12 @@ class Admin_Settings {
 			'ttfb'        => (int) $ttfb,
 			'load_time'   => (int) $load_time,
 			'requests'    => (int) ( $snapshot['requests'] ?? 0 ),
-			'dom_count'   => (int) ( $snapshot['dom_count'] ?? 0 ),
 			'db_overhead' => $db_overhead_mb,
 			'modules'     => (int) $module_count,
 			'history'     => $history,
 			'nonce'       => wp_create_nonce( 'wppt_admin_nonce' ),
 			'i18n'        => [
-				'no_data' => __( 'Waiting for telemetry... Visit your frontend to trigger analysis.', 'wp-performance-toolkit' )
+				'no_data' => __( 'Waiting for telemetry...', 'wp-performance-toolkit' )
 			]
 		];
 	}
@@ -125,13 +115,10 @@ class Admin_Settings {
 		<div class="wrap wppt-dashboard">
 			<header class="wppt-header">
 				<h1><?php echo esc_html__( 'WP Performance Toolkit', 'wp-performance-toolkit' ); ?></h1>
-				<p class="description"><?php echo esc_html__( 'High-performance monitoring and surgical optimization hub.', 'wp-performance-toolkit' ); ?></p>
 			</header>
 
-			<!-- Performance Score Section -->
 			<section class="wppt-score-card">
 				<div class="wppt-score-circle">
-					<!-- SVG Gauge generated via JS -->
 					<span class="wppt-score-value">--</span>
 				</div>
 				<div class="wppt-score-meta">
@@ -139,44 +126,34 @@ class Admin_Settings {
 						<span class="status pulse"></span>
 						<?php esc_html_e( 'System Status: Active', 'wp-performance-toolkit' ); ?>
 					</div>
-					<p id="wppt-last-run-msg" style="margin-top: 10px; color: var(--wppt-text-muted); font-size: 13px;">
-						<?php esc_html_e( 'Telemetry is collected in real-time from your live site visitors.', 'wp-performance-toolkit' ); ?>
-					</p>
 				</div>
 			</section>
 
-			<!-- Metrics Grid -->
 			<div class="wppt-grid">
 				<article class="wppt-card">
 					<h3><?php esc_html_e( 'Server Response (TTFB)', 'wp-performance-toolkit' ); ?></h3>
 					<div class="wppt-metric" id="metric-ttfb">--ms</div>
 				</article>
-
 				<article class="wppt-card">
 					<h3><?php esc_html_e( 'Full Page Load', 'wp-performance-toolkit' ); ?></h3>
 					<div class="wppt-metric" id="metric-load-time">--ms</div>
 				</article>
-
 				<article class="wppt-card">
 					<h3><?php esc_html_e( 'HTTP Requests', 'wp-performance-toolkit' ); ?></h3>
 					<div class="wppt-metric" id="metric-requests">--</div>
 				</article>
-
 				<article class="wppt-card">
 					<h3><?php esc_html_e( 'Active Optimizers', 'wp-performance-toolkit' ); ?></h3>
 					<div class="wppt-metric" id="metric-modules">--</div>
 				</article>
 			</div>
 
-			<!-- Main Layout -->
 			<main class="wppt-main-content">
 				<div class="wppt-chart-container">
 					<div class="wppt-chart-header">
 						<h2><?php esc_html_e( 'Load Time History (ms)', 'wp-performance-toolkit' ); ?></h2>
 					</div>
-					<div class="wppt-chart-placeholder" id="wppt-history-chart">
-						<!-- SVG Sparkline generated via JS -->
-					</div>
+					<div class="wppt-chart-placeholder" id="wppt-history-chart"></div>
 				</div>
 
 				<aside class="wppt-sidebar">
@@ -184,20 +161,11 @@ class Admin_Settings {
 						<h3><?php esc_html_e( 'Database Health', 'wp-performance-toolkit' ); ?></h3>
 						<div class="wppt-overhead-info" style="margin-bottom: 20px;">
 							<span style="font-size: 24px; font-weight: 700; color: var(--wppt-accent);" id="metric-db-overhead">0.00</span>
-							<span style="font-size: 14px; color: var(--wppt-text-muted);"> MB <?php esc_html_e( 'reclaimable overhead', 'wp-performance-toolkit' ); ?></span>
+							<span style="font-size: 14px; color: var(--wppt-text-muted);"> MB</span>
 						</div>
-						<button id="wppt-optimize-db" class="button button-primary" style="width: 100%; height: 40px; justify-content: center; display: flex; align-items: center; border-radius: 6px;">
+						<button id="wppt-optimize-db" class="button button-primary" style="width: 100%; border-radius: 6px;">
 							<?php esc_html_e( 'Optimize Database', 'wp-performance-toolkit' ); ?>
 						</button>
-					</div>
-
-					<div class="wppt-card" style="margin-top: 20px; background: #1d2327; color: #fff;">
-						<h3 style="color: #fff;"><?php esc_html_e( 'Developer Info', 'wp-performance-toolkit' ); ?></h3>
-						<p style="font-size: 12px; opacity: 0.8;">
-							<?php printf( esc_html__( 'PHP: %s', 'wp-performance-toolkit' ), phpversion() ); ?><br>
-							<?php printf( esc_html__( 'Memory: %s', 'wp-performance-toolkit' ), ini_get( 'memory_limit' ) ); ?><br>
-							<?php printf( esc_html__( 'WPPT Version: %s', 'wp-performance-toolkit' ), WPPT_VERSION ); ?>
-						</p>
 					</div>
 				</aside>
 			</main>
