@@ -8,10 +8,19 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Admin Settings & Dashboard Manager
  * 
- * Handles the registration of the admin menu, asset enqueuing, 
- * and the rendering of the telemetry-driven dashboard.
+ * Handles the orchestration of admin hooks, asset loading, 
+ * and telemetry-driven dashboard rendering.
  */
 class Admin_Settings {
+
+	/**
+	 * Orchestrates the registration of hooks.
+	 * This ensures the menu and assets are loaded only when WordPress is ready.
+	 */
+	public function run(): void {
+		add_action( 'admin_menu', [ $this, 'register_menu' ] );
+		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_assets' ] );
+	}
 
 	/**
 	 * Register the top-level "Performance" menu.
@@ -38,11 +47,11 @@ class Admin_Settings {
 			return;
 		}
 
-		// Enqueue the pure CSS and Vanilla JS built in previous phases.
+		// Enqueue the pure CSS and Vanilla JS.
 		wp_enqueue_style( 'wppt-admin-css', WPPT_URL . 'admin/assets/css/admin.css', [], WPPT_VERSION );
 		wp_enqueue_script( 'wppt-admin-js', WPPT_URL . 'admin/assets/js/admin.js', [], WPPT_VERSION, true );
 
-		// Gather telemetry and pass it to the JS dashboard.
+		// Gather telemetry and pass it to the JS dashboard under the window.wpptStats object.
 		wp_localize_script( 'wppt-admin-js', 'wpptStats', $this->get_dashboard_telemetry() );
 	}
 
@@ -54,7 +63,7 @@ class Admin_Settings {
 	private function get_dashboard_telemetry(): array {
 		global $wpdb;
 
-		// 1. Fetch the latest snapshot from Module 1 (Performance Analyzer).
+		// 1. Fetch the latest snapshot from the Performance Analyzer.
 		$snapshot = get_transient( 'wppt_latest_performance_snapshot' );
 		$history  = get_option( 'wppt_performance_history', [] );
 
@@ -63,7 +72,7 @@ class Admin_Settings {
 		$db_overhead = 0;
 		if ( $db_status ) {
 			foreach ( $db_status as $table ) {
-				$db_overhead += (int) $table['Data_free'];
+				$db_overhead += (int) ( $table['Data_free'] ?? 0 );
 			}
 		}
 		$db_overhead_mb = round( $db_overhead / 1024 / 1024, 2 );
@@ -90,13 +99,13 @@ class Admin_Settings {
 		$final_score = ( $ttfb > 0 && $load_time > 0 ) ? round( ( $ttfb_score + $load_score ) / 2 ) : 0;
 
 		return [
-			'score'       => $final_score,
-			'ttfb'        => $ttfb,
-			'load_time'   => $load_time,
-			'requests'    => $snapshot['requests'] ?? 0,
-			'dom_count'   => $snapshot['dom_count'] ?? 0,
+			'score'       => (int) $final_score,
+			'ttfb'        => (int) $ttfb,
+			'load_time'   => (int) $load_time,
+			'requests'    => (int) ( $snapshot['requests'] ?? 0 ),
+			'dom_count'   => (int) ( $snapshot['dom_count'] ?? 0 ),
 			'db_overhead' => $db_overhead_mb,
-			'modules'     => $module_count,
+			'modules'     => (int) $module_count,
 			'history'     => $history,
 			'nonce'       => wp_create_nonce( 'wppt_admin_nonce' ),
 			'i18n'        => [
