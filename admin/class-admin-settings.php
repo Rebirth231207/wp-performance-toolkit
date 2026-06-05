@@ -179,4 +179,20 @@ class Admin_Settings {
 						</div>
 						<button id="wppt-optimize-db" class="button button-primary" style="width: 100%; height: 40px; justify-content: center; display: flex; align-items: center; border-radius: 6px;">
 							<?php esc_html_e( 'Optimize Database', 'wp-performance-toolkit' ); ?>
-						</butto
+						</button>
+					</div>
+
+					<div class="wppt-card" style="margin-top: 20px; background: #1d2327; color: #fff;">
+						<h3 style="color: #fff;"><?php esc_html_e( 'Developer Info', 'wp-performance-toolkit' ); ?></h3>
+						<p style="font-size: 12px; opacity: 0.8;">
+							<?php printf( esc_html__( 'PHP: %s', 'wp-performance-toolkit' ), phpversion() ); ?><br>
+							<?php printf( esc_html__( 'Memory: %s', 'wp-performance-toolkit' ), ini_get( 'memory_limit' ) ); ?><br>
+							<?php printf( esc_html__( 'WPPT Version: %s', 'wp-performance-toolkit' ), WPPT_VERSION ); ?>
+						</p>
+					</div>
+				</aside>
+			</main>
+		</div>
+		<?php
+	}
+}
