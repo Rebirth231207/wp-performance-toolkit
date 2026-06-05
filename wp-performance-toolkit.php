@@ -24,48 +24,19 @@ if ( ! defined( 'ABSPATH' ) ) {
 define( 'WPPT_VERSION', '1.0.0' );
 define( 'WPPT_PATH', plugin_dir_path( __FILE__ ) );
 define( 'WPPT_URL', plugin_dir_url( __FILE__ ) );
-define( 'WPPT_BASENAME', plugin_basename( __FILE__ ) );
 
 /**
- * Load the Autoloader.
+ * Load and Initialize the PSR-4 Autoloader.
  */
 require_once WPPT_PATH . 'includes/class-autoloader.php';
+new WPPT\Includes\Autoloader();
 
 /**
- * Initialize the Plugin.
+ * Run the Toolkit.
+ * We hook into plugins_loaded to ensure dependencies are available.
  */
-function run_wp_performance_toolkit() {
-	// Start Autoloader.
-	new WPPT\Includes\Autoloader();
-
-	// Load Internationalization.
-	$i18n = new WPPT\Includes\I18n();
-	add_action( 'plugins_loaded', [ $i18n, 'load_textdomain' ] );
-
-	// Initialize Module Manager.
+add_action( 'plugins_loaded', function() {
+	// Initialize the Module Manager.
+	// This will handle the discovery and loading of all performance modules.
 	new WPPT\Includes\Module_Manager();
-
-	// Initialize Admin Dashboard.
-	if ( is_admin() ) {
-		$admin = new WPPT\Admin\Admin_Settings();
-		add_action( 'admin_menu', [ $admin, 'register_menu' ] );
-		add_action( 'admin_enqueue_scripts', [ $admin, 'enqueue_assets' ] );
-	}
-}
-
-run_wp_performance_toolkit();
-
-/**
- * Deactivation Hook.
- * Clears scheduled cron tasks.
- */
-register_deactivation_hook( __FILE__, 'wppt_deactivate' );
-function wppt_deactivate() {
-	// We instantiate the class manually to clear the cron if it exists.
-	if ( file_exists( WPPT_PATH . 'modules/database-optimizer/class-database-optimizer.php' ) ) {
-		require_once WPPT_PATH . 'includes/abstract-module.php';
-		require_once WPPT_PATH . 'modules/database-optimizer/class-database-optimizer.php';
-		$db_opt = new WPPT\Modules\Database_Optimizer();
-		$db_opt->clear_scheduled_tasks();
-	}
-}
+});
